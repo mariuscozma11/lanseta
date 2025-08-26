@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { sampleFishingSpots } from '@/src/data/fishingSpots';
 import { FishingSpot } from '@/src/types/database';
 import FishingSpotModal from '@/src/components/FishingSpotModal';
 import SolunarCard from '@/src/components/SolunarCard';
 import HourlyActivityChart from '@/src/components/HourlyActivityChart';
 import FishingMap from '@/src/components/FishingMap';
+import FullScreenMap from '@/src/components/FullScreenMap';
 import { calculateSolunarScore, SolunarData } from '@/src/utils/solunarUtils';
 import { Colors } from '@/src/constants/Colors';
 
 export default function MapScreen() {
   const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
+  const [fullScreenMapVisible, setFullScreenMapVisible] = useState(false)
   const [solunarData, setSolunarData] = useState<SolunarData | null>(null)
 
   useEffect(() => {
@@ -31,39 +34,60 @@ export default function MapScreen() {
     setSelectedSpot(null)
   }
 
+  const handleMaximizeMap = () => {
+    setFullScreenMapVisible(true)
+  }
+
+  const handleCloseFullScreenMap = () => {
+    setFullScreenMapVisible(false)
+  }
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {solunarData && (
-        <SolunarCard data={solunarData} compact />
-      )}
-      
-      <View style={styles.mapContainer}>
-        <FishingMap
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {solunarData && (
+          <SolunarCard data={solunarData} compact />
+        )}
+        
+        <View style={styles.mapContainer}>
+          <FishingMap
+            spots={sampleFishingSpots}
+            onSpotPress={handleSpotPress}
+            onMaximize={handleMaximizeMap}
+          />
+        </View>
+
+        {solunarData && (
+          <>
+            <SolunarCard data={solunarData} />
+            <HourlyActivityChart data={solunarData} />
+          </>
+        )}
+
+        <FishingSpotModal
+          visible={modalVisible}
+          spot={selectedSpot}
+          onClose={handleCloseModal}
+        />
+
+        <FullScreenMap
+          visible={fullScreenMapVisible}
           spots={sampleFishingSpots}
           onSpotPress={handleSpotPress}
+          onClose={handleCloseFullScreenMap}
         />
-      </View>
-
-      {solunarData && (
-        <>
-          <SolunarCard data={solunarData} />
-          <HourlyActivityChart data={solunarData} />
-        </>
-      )}
-
-      <FishingSpotModal
-        visible={modalVisible}
-        spot={selectedSpot}
-        onClose={handleCloseModal}
-      />
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: Colors.light.backgroundSecondary,
+  },
+  container: {
+    flex: 1,
   },
   mapContainer: {
     height: 300,

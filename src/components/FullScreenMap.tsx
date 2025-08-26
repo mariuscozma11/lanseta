@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { StyleSheet, View, Dimensions, Alert, TouchableOpacity, Text } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Text, Modal } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import MapView, { Region } from 'react-native-maps'
 import * as Location from 'expo-location'
 import { FishingSpot } from '../types/database'
 import FishingSpotMarker from './FishingSpotMarker'
 import { Colors } from '../constants/Colors'
 
-interface FishingMapProps {
+interface FullScreenMapProps {
+  visible: boolean
   spots: FishingSpot[]
   onSpotPress?: (spot: FishingSpot) => void
-  onMaximize?: () => void
+  onClose: () => void
 }
-
-const { width } = Dimensions.get('window')
 
 // Default region centered on Timisoara
 const TIMISOARA_REGION: Region = {
@@ -22,20 +22,21 @@ const TIMISOARA_REGION: Region = {
   longitudeDelta: 0.3,
 }
 
-export default function FishingMap({ spots, onSpotPress, onMaximize }: FishingMapProps) {
+export default function FullScreenMap({ visible, spots, onSpotPress, onClose }: FullScreenMapProps) {
   const [region, setRegion] = useState<Region>(TIMISOARA_REGION)
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null)
   const mapRef = useRef<MapView>(null)
 
   useEffect(() => {
-    getUserLocation()
-  }, [])
+    if (visible) {
+      getUserLocation()
+    }
+  }, [visible])
 
   const getUserLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert('Permisiuni necesare', 'Aplicația are nevoie de acces la locație pentru a afișa harta corect.')
         return
       }
 
@@ -73,97 +74,105 @@ export default function FishingMap({ spots, onSpotPress, onMaximize }: FishingMa
       }
     }
     
-    // Default to Timisoara with tighter zoom for container
-    const containerRegion = {
-      ...TIMISOARA_REGION,
-      latitudeDelta: 0.2,
-      longitudeDelta: 0.2,
-    }
-    mapRef.current?.animateToRegion(containerRegion, 1000)
+    // Default to Timisoara
+    mapRef.current?.animateToRegion(TIMISOARA_REGION, 1000)
   }
 
   return (
-    <View style={styles.container}>
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        region={region}
-        onRegionChangeComplete={setRegion}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-        showsCompass={false}
-        showsScale={false}
-        showsBuildings={false}
-        showsTraffic={false}
-        showsIndoors={false}
-        showsPointsOfInterest={false}
-        mapType="standard"
-        toolbarEnabled={false}
-        moveOnMarkerPress={false}
-      >
-        {spots.map((spot) => (
-          <FishingSpotMarker
-            key={spot.id}
-            spot={spot}
-            onPress={onSpotPress}
-          />
-        ))}
-      </MapView>
-      
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.maximizeButton} onPress={onMaximize}>
-          <Text style={styles.maximizeIcon}>⛶</Text>
-        </TouchableOpacity>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+    >
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeIcon}>✕</Text>
+          </TouchableOpacity>
+          <Text style={styles.title}>🎣 Harta Pescuit - Timiș</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          region={region}
+          onRegionChangeComplete={setRegion}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+          showsCompass={false}
+          showsScale={false}
+          showsBuildings={false}
+          showsTraffic={false}
+          showsIndoors={false}
+          showsPointsOfInterest={false}
+          mapType="standard"
+          toolbarEnabled={false}
+          moveOnMarkerPress={false}
+        >
+          {spots.map((spot) => (
+            <FishingSpotMarker
+              key={spot.id}
+              spot={spot}
+              onPress={onSpotPress}
+            />
+          ))}
+        </MapView>
         
         <TouchableOpacity style={styles.recenterButton} onPress={recenterMap}>
           <Text style={styles.recenterIcon}>📍</Text>
           <Text style={styles.recenterText}>Centrează</Text>
         </TouchableOpacity>
-      </View>
-    </View>
+      </SafeAreaView>
+    </Modal>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.neutral.white,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.neutral.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.borderLight,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.light.backgroundSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeIcon: {
+    fontSize: 16,
+    color: Colors.light.textSecondary,
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.primary.blue,
+    flex: 1,
+    textAlign: 'center',
+  },
+  placeholder: {
+    width: 36,
   },
   map: {
     flex: 1,
-    width: '100%',
-  },
-  buttonsContainer: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-  },
-  maximizeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.neutral.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: Colors.neutral.black,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  maximizeIcon: {
-    fontSize: 18,
-    color: Colors.primary.blue,
-    fontWeight: 'bold',
   },
   recenterButton: {
+    position: 'absolute',
+    bottom: 40,
+    right: 20,
     backgroundColor: Colors.neutral.white,
     borderRadius: 25,
     paddingHorizontal: 16,

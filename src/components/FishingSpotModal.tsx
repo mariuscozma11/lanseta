@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  StatusBar,
+  Animated,
+  PanResponder,
 } from 'react-native'
+import { BlurView } from 'expo-blur'
 import { FishingSpot } from '../types/database'
 import { Colors } from '../constants/Colors'
 import { RomanianText } from '../localization/ro'
@@ -22,6 +24,70 @@ interface FishingSpotModalProps {
 const { height: screenHeight } = Dimensions.get('window')
 
 export default function FishingSpotModal({ visible, spot, onClose }: FishingSpotModalProps) {
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 20
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          slideAnim.setValue(gestureState.dy)
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          closeModal()
+        } else {
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start()
+        }
+      },
+    })
+  ).current
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        })
+      ]).start()
+    } else {
+      slideAnim.setValue(screenHeight)
+      fadeAnim.setValue(0)
+    }
+  }, [visible])
+
+  const closeModal = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 250,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
+      onClose()
+    })
+  }
+
   if (!spot) return null
 
   const isFree = spot.price === 0 || spot.price === null || spot.price === undefined
@@ -30,14 +96,30 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="none"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={closeModal}
       statusBarTranslucent={true}
     >
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} onPress={onClose} />
-        <View style={styles.modalContainer}>
+        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
+          <BlurView intensity={20} style={StyleSheet.absoluteFillObject} />
+          <TouchableOpacity 
+            style={StyleSheet.absoluteFillObject} 
+            onPress={closeModal}
+            activeOpacity={1}
+          />
+        </Animated.View>
+        
+        <Animated.View 
+          style={[
+            styles.modalContainer,
+            {
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+          {...panResponder.panHandlers}
+        >
           <View style={styles.handleContainer}>
             <View style={styles.handle} />
           </View>
@@ -63,7 +145,7 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
               </View>
             </View>
             
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -109,7 +191,6 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: Colors.light.overlay,
   },
   backdrop: {
     position: 'absolute',
@@ -117,22 +198,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   modalContainer: {
     backgroundColor: Colors.neutral.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: screenHeight * 0.85,
-    minHeight: screenHeight * 0.5,
+    height: screenHeight * 0.78,
     paddingTop: 12,
     shadowColor: Colors.neutral.black,
     shadowOffset: {
       width: 0,
-      height: -4,
+      height: -8,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 16,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 20,
   },
   handleContainer: {
     alignItems: 'center',
