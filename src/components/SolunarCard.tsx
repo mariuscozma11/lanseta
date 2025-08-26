@@ -51,7 +51,7 @@ export default function SolunarCard({ data, compact = false }: SolunarCardProps)
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>🌙 Activitate Solunar</Text>
+          <Text style={styles.title}>Activitate Solunar</Text>
           <Text style={styles.date}>
             {data.date.toLocaleDateString('ro-RO', { 
               day: 'numeric', 

@@ -31,7 +31,7 @@ export default function HourlyActivityChart({ data }: HourlyActivityChartProps) 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>📊 Activitate pe ore - Azi</Text>
+      <Text style={styles.title}>Activitate pe ore - Azi</Text>
       
       <ScrollView 
         horizontal 
@@ -57,13 +57,6 @@ export default function HourlyActivityChart({ data }: HourlyActivityChartProps) 
                 ]}
               />
               
-              {isPrimeTime(index) && (
-                <View style={styles.primeTimeIndicator}>
-                  <Text style={styles.sunMoonIcon}>
-                    {Math.abs(index - data.sunTimes.sunrise.getHours()) <= 1 ? '🌅' : '🌇'}
-                  </Text>
-                </View>
-              )}
             </View>
             
             <Text style={[
@@ -149,13 +142,6 @@ const styles = StyleSheet.create({
     width: 20,
     borderRadius: 10,
     minHeight: 8,
-  },
-  primeTimeIndicator: {
-    position: 'absolute',
-    bottom: -25,
-  },
-  sunMoonIcon: {
-    fontSize: 12,
   },
   hourLabel: {
     fontSize: 10,

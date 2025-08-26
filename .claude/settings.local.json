@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(npm start)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)",
+      "Bash(fuser:*)"
     ],
     "deny": [],
     "ask": []

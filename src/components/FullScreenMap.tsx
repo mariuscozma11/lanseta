@@ -3,14 +3,15 @@ import { StyleSheet, View, TouchableOpacity, Text, Modal } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import MapView, { Region } from 'react-native-maps'
 import * as Location from 'expo-location'
+import { Ionicons } from '@expo/vector-icons'
 import { FishingSpot } from '../types/database'
 import FishingSpotMarker from './FishingSpotMarker'
+import FishingSpotModal from './FishingSpotModal'
 import { Colors } from '../constants/Colors'
 
 interface FullScreenMapProps {
   visible: boolean
   spots: FishingSpot[]
-  onSpotPress?: (spot: FishingSpot) => void
   onClose: () => void
 }
 
@@ -22,9 +23,11 @@ const TIMISOARA_REGION: Region = {
   longitudeDelta: 0.3,
 }
 
-export default function FullScreenMap({ visible, spots, onSpotPress, onClose }: FullScreenMapProps) {
+export default function FullScreenMap({ visible, spots, onClose }: FullScreenMapProps) {
   const [region, setRegion] = useState<Region>(TIMISOARA_REGION)
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null)
+  const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null)
+  const [spotModalVisible, setSpotModalVisible] = useState(false)
   const mapRef = useRef<MapView>(null)
 
   useEffect(() => {
@@ -78,6 +81,16 @@ export default function FullScreenMap({ visible, spots, onSpotPress, onClose }: 
     mapRef.current?.animateToRegion(TIMISOARA_REGION, 1000)
   }
 
+  const handleSpotPress = (spot: FishingSpot) => {
+    setSelectedSpot(spot)
+    setSpotModalVisible(true)
+  }
+
+  const handleCloseSpotModal = () => {
+    setSpotModalVisible(false)
+    setSelectedSpot(null)
+  }
+
   return (
     <Modal
       visible={visible}
@@ -87,9 +100,12 @@ export default function FullScreenMap({ visible, spots, onSpotPress, onClose }: 
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeIcon}>✕</Text>
+            <Ionicons name="close" size={18} color={Colors.light.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.title}>🎣 Harta Pescuit - Timiș</Text>
+          <View style={styles.titleContainer}>
+            <Ionicons name="fish" size={20} color={Colors.primary.blue} />
+            <Text style={styles.title}>Harta Pescuit - Timiș</Text>
+          </View>
           <View style={styles.placeholder} />
         </View>
 
@@ -114,15 +130,21 @@ export default function FullScreenMap({ visible, spots, onSpotPress, onClose }: 
             <FishingSpotMarker
               key={spot.id}
               spot={spot}
-              onPress={onSpotPress}
+              onPress={handleSpotPress}
             />
           ))}
         </MapView>
         
         <TouchableOpacity style={styles.recenterButton} onPress={recenterMap}>
-          <Text style={styles.recenterIcon}>📍</Text>
+          <Ionicons name="locate" size={16} color={Colors.primary.blue} />
           <Text style={styles.recenterText}>Centrează</Text>
         </TouchableOpacity>
+
+        <FishingSpotModal
+          visible={spotModalVisible}
+          spot={selectedSpot}
+          onClose={handleCloseSpotModal}
+        />
       </SafeAreaView>
     </Modal>
   )
@@ -151,17 +173,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeIcon: {
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-    fontWeight: '600',
+  titleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.primary.blue,
-    flex: 1,
-    textAlign: 'center',
   },
   placeholder: {
     width: 36,
@@ -189,10 +211,6 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: Colors.light.border,
-  },
-  recenterIcon: {
-    fontSize: 16,
-    marginRight: 6,
   },
   recenterText: {
     fontSize: 12,

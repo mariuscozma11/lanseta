@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import {
   View,
   Text,
@@ -7,10 +7,17 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Animated,
-  PanResponder,
 } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated'
+import { PanGestureHandler } from 'react-native-gesture-handler'
 import { BlurView } from 'expo-blur'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
 import { FishingSpot } from '../types/database'
 import { Colors } from '../constants/Colors'
 import { RomanianText } from '../localization/ro'
@@ -24,69 +31,53 @@ interface FishingSpotModalProps {
 const { height: screenHeight } = Dimensions.get('window')
 
 export default function FishingSpotModal({ visible, spot, onClose }: FishingSpotModalProps) {
-  const slideAnim = useRef(new Animated.Value(screenHeight)).current
-  const fadeAnim = useRef(new Animated.Value(0)).current
+  const translateY = useSharedValue(screenHeight)
+  const opacity = useSharedValue(0)
   
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dy) > 20
-      },
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dy > 0) {
-          slideAnim.setValue(gestureState.dy)
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
-          closeModal()
-        } else {
-          Animated.spring(slideAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start()
-        }
-      },
-    })
-  ).current
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: (_, context: { startY: number }) => {
+      context.startY = translateY.value
+    },
+    onActive: (event, context: { startY: number }) => {
+      const newTranslateY = context.startY + event.translationY
+      translateY.value = Math.max(0, newTranslateY)
+    },
+    onEnd: (event) => {
+      if (event.translationY > 80 || event.velocityY > 500) {
+        translateY.value = withTiming(screenHeight, { duration: 250 })
+        opacity.value = withTiming(0, { duration: 300 }, () => {
+          runOnJS(onClose)()
+        })
+      } else {
+        translateY.value = withTiming(0, { duration: 250 })
+      }
+    },
+  })
 
   useEffect(() => {
     if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        })
-      ]).start()
+      opacity.value = withTiming(1, { duration: 300 })
+      translateY.value = withTiming(0, { duration: 300 })
     } else {
-      slideAnim.setValue(screenHeight)
-      fadeAnim.setValue(0)
+      translateY.value = screenHeight
+      opacity.value = 0
     }
   }, [visible])
 
   const closeModal = () => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: screenHeight,
-        duration: 250,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      onClose()
+    translateY.value = withTiming(screenHeight, { duration: 250 })
+    opacity.value = withTiming(0, { duration: 300 }, () => {
+      runOnJS(onClose)()
     })
   }
+
+  const modalAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }]
+  }))
+
+  const backdropAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value
+  }))
 
   if (!spot) return null
 
@@ -102,7 +93,7 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
       statusBarTranslucent={true}
     >
       <View style={styles.overlay}>
-        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.backdrop, backdropAnimatedStyle]}>
           <BlurView intensity={20} style={StyleSheet.absoluteFillObject} />
           <TouchableOpacity 
             style={StyleSheet.absoluteFillObject} 
@@ -111,15 +102,10 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
           />
         </Animated.View>
         
-        <Animated.View 
-          style={[
-            styles.modalContainer,
-            {
-              transform: [{ translateY: slideAnim }]
-            }
-          ]}
-          {...panResponder.panHandlers}
-        >
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View 
+            style={[styles.modalContainer, modalAnimatedStyle]}
+          >
           <View style={styles.handleContainer}>
             <View style={styles.handle} />
           </View>
@@ -130,7 +116,7 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
                 styles.spotTypeIndicator,
                 isFree ? styles.freeIndicator : isPremium ? styles.premiumIndicator : styles.paidIndicator
               ]}>
-                <Text style={styles.spotIcon}>🎣</Text>
+                <Ionicons name="fish" size={24} color={Colors.neutral.white} />
               </View>
               <View style={styles.titleContainer}>
                 <Text style={styles.spotName}>{spot.name}</Text>
@@ -146,18 +132,24 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
             </View>
             
             <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-              <Text style={styles.closeButtonText}>✕</Text>
+              <Ionicons name="close" size={18} color={Colors.light.textSecondary} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>📍 {RomanianText.description}</Text>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="location" size={18} color={Colors.primary.blue} />
+                <Text style={styles.sectionTitle}>{RomanianText.description}</Text>
+              </View>
               <Text style={styles.description}>{spot.description}</Text>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>🐟 {RomanianText.presentSpecies}</Text>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="fish" size={18} color={Colors.primary.blue} />
+                <Text style={styles.sectionTitle}>{RomanianText.presentSpecies}</Text>
+              </View>
               <View style={styles.speciesContainer}>
                 {spot.species.map((species, index) => (
                   <View key={index} style={styles.speciesTag}>
@@ -168,20 +160,30 @@ export default function FishingSpotModal({ visible, spot, onClose }: FishingSpot
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>📋 {RomanianText.rules}</Text>
+              <View style={styles.sectionTitleRow}>
+                <MaterialIcons name="rule" size={18} color={Colors.primary.blue} />
+                <Text style={styles.sectionTitle}>{RomanianText.rules}</Text>
+              </View>
               <Text style={styles.rulesText}>{spot.rules}</Text>
             </View>
 
             <View style={styles.actionButtonsContainer}>
               <TouchableOpacity style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>📍 Vezi pe Hartă</Text>
+                <View style={styles.buttonRow}>
+                  <Ionicons name="location" size={16} color={Colors.neutral.white} />
+                  <Text style={styles.primaryButtonText}>Vezi pe Hartă</Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.secondaryButton}>
-                <Text style={styles.secondaryButtonText}>⭐ Adaugă la Favorite</Text>
+                <View style={styles.buttonRow}>
+                  <Ionicons name="star-outline" size={16} color={Colors.primary.blue} />
+                  <Text style={styles.secondaryButtonText}>Adaugă la Favorite</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </View>
+          </Animated.View>
+        </PanGestureHandler>
       </View>
     </Modal>
   )
@@ -217,13 +219,15 @@ const styles = StyleSheet.create({
   },
   handleContainer: {
     alignItems: 'center',
-    paddingBottom: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
   handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: Colors.light.border,
-    borderRadius: 2,
+    width: 50,
+    height: 5,
+    backgroundColor: Colors.light.textSecondary,
+    borderRadius: 3,
+    opacity: 0.7,
   },
   header: {
     flexDirection: 'row',
@@ -312,11 +316,16 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 20,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: Colors.primary.blue,
-    marginBottom: 10,
   },
   description: {
     fontSize: 15,
@@ -376,5 +385,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary.blue,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
 })

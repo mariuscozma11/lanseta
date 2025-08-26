@@ -16,7 +16,11 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.lanseta.fishing"
+      "bundleIdentifier": "com.lanseta.fishing",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Această aplicație folosește camera pentru a face poze cu capturile de pești.",
+        "NSPhotoLibraryUsageDescription": "Această aplicație accesează galeria foto pentru a selecta imagini cu capturile de pești."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,11 +28,20 @@
         "backgroundColor": "#1565C0"
       },
       "package": "com.lanseta.fishing",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION", 
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "plugins": [
       "expo-router",
-      "expo-location"
+      "expo-location",
+      "expo-image-picker",
+      "expo-camera",
+      "expo-media-library"
     ],
     "experiments": {
       "typedRoutes": true

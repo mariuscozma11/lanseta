@@ -73,7 +73,6 @@ export default function MapScreen() {
         <FullScreenMap
           visible={fullScreenMapVisible}
           spots={sampleFishingSpots}
-          onSpotPress={handleSpotPress}
           onClose={handleCloseFullScreenMap}
         />
       </ScrollView>

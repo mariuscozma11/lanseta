@@ -28,8 +28,8 @@ export default function TabLayout() {
           backgroundColor: Colors.neutral.white,
           borderTopWidth: 1,
           borderTopColor: Colors.light.borderLight,
-          paddingBottom: 5,
-          height: 60,
+          paddingBottom: 25,
+          height: 85,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -48,7 +48,7 @@ export default function TabLayout() {
         name="species"
         options={{
           title: RomanianText.species,
-          tabBarIcon: ({ color }) => <TabBarIcon name="fish" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
         }}
       />
       <Tabs.Screen

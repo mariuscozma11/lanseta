@@ -34,8 +34,6 @@ export const Colors = {
   
   // Semantic colors
   success: '#28A745',
-  warning: '#FFC107', 
-  error: '#DC3545',
   info: '#17A2B8',
   
   // Light theme
@@ -70,6 +68,17 @@ export const Colors = {
     tabIconSelected: '#42A5F5',
     shadow: 'rgba(0, 0, 0, 0.3)',
     overlay: 'rgba(0, 0, 0, 0.7)',
+  },
+  
+  // Status colors
+  warning: {
+    orange: '#FFC107',
+    lightOrange: '#FFE0B2',
+  },
+  
+  error: {
+    red: '#DC3545',
+    lightRed: '#FFEBEE',
   },
   
   // Map-specific colors
