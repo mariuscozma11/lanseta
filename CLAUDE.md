@@ -1,13 +1,14 @@
-# Lanseta - Romanian Fishing App
+# Lanseta - Romanian Mobile Fishing App
 
 ## Project Overview
-Lanseta is a mobile and web app for Romanian fishermen, specifically targeting hobby anglers in Timis county/Timisoara. The app provides fishing spot maps, solunar activity insights, species database, and personal fishing journal.
+Lanseta is a native mobile app for Romanian fishermen, specifically targeting hobby anglers in Timis county/Timisoara. The app provides interactive fishing spot maps, solunar activity insights, species database, and personal fishing journal.
 
 ## Tech Stack
-- **Frontend**: React Native with Expo (mobile + web)
+- **Frontend**: React Native with Expo (iOS & Android only)
 - **Backend**: Supabase (database, auth, serverless functions)
 - **Language**: TypeScript
 - **Primary Language**: Romanian (UI/content)
+- **Target Platforms**: iOS and Android mobile devices only
 
 ## Development Guidelines
 
@@ -47,26 +48,27 @@ src/
 ### Development Rules
 - All UI text must be in Romanian
 - Focus on Timis county fishing spots initially
-- Test on both mobile and web platforms
-- Use Expo development build for maps testing
+- Mobile-first design and development approach
+- Use Expo development build for maps testing on real devices
 - Implement offline-friendly design (cache important data)
+- Optimize for touch interactions and mobile gestures
 
 ### Environment Variables
 Create `.env` file:
 ```
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
 ### Testing
-- Test maps functionality on physical device
-- Verify web compatibility regularly
-- Test Romanian text rendering and input
+- Test maps functionality on physical iOS and Android devices
+- Test location permissions and GPS accuracy
+- Verify Romanian text rendering and input on mobile keyboards
+- Test touch interactions and gestures
 
 ### Deployment
-- Mobile: Expo EAS Build → App Store / Play Store
-- Web: Expo web build → Vercel/Netlify
+- iOS: Expo EAS Build → Apple App Store
+- Android: Expo EAS Build → Google Play Store
 
 ## Romanian Fishing Context
 - Focus on species common in Timis county rivers/lakes

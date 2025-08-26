@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Dimensions, Alert } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
+import { StyleSheet, View, Dimensions, Alert, TouchableOpacity, Text } from 'react-native'
 import MapView, { Region } from 'react-native-maps'
 import * as Location from 'expo-location'
 import { FishingSpot } from '../types/database'
 import FishingSpotMarker from './FishingSpotMarker'
+import { Colors } from '../constants/Colors'
 
 interface FishingMapProps {
   spots: FishingSpot[]
   onSpotPress?: (spot: FishingSpot) => void
 }
 
-const { width, height } = Dimensions.get('window')
+const { width } = Dimensions.get('window')
 
 // Default region centered on Timisoara
 const TIMISOARA_REGION: Region = {
@@ -23,6 +24,7 @@ const TIMISOARA_REGION: Region = {
 export default function FishingMap({ spots, onSpotPress }: FishingMapProps) {
   const [region, setRegion] = useState<Region>(TIMISOARA_REGION)
   const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null)
+  const mapRef = useRef<MapView>(null)
 
   useEffect(() => {
     getUserLocation()
@@ -54,9 +56,30 @@ export default function FishingMap({ spots, onSpotPress }: FishingMapProps) {
     }
   }
 
+  const recenterMap = () => {
+    if (userLocation) {
+      const { latitude, longitude } = userLocation.coords
+      if (latitude > 45.0 && latitude < 46.5 && longitude > 20.0 && longitude < 22.5) {
+        // User is in Timis county, center on them
+        const newRegion = {
+          latitude,
+          longitude,
+          latitudeDelta: 0.2,
+          longitudeDelta: 0.2,
+        }
+        mapRef.current?.animateToRegion(newRegion, 1000)
+        return
+      }
+    }
+    
+    // Default to Timisoara
+    mapRef.current?.animateToRegion(TIMISOARA_REGION, 1000)
+  }
+
   return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         style={styles.map}
         region={region}
         onRegionChangeComplete={setRegion}
@@ -80,6 +103,11 @@ export default function FishingMap({ spots, onSpotPress }: FishingMapProps) {
           />
         ))}
       </MapView>
+      
+      <TouchableOpacity style={styles.recenterButton} onPress={recenterMap}>
+        <Text style={styles.recenterIcon}>📍</Text>
+        <Text style={styles.recenterText}>Centrează</Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -89,7 +117,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   map: {
-    width: width,
-    height: height - 100, // Account for tab bar
+    flex: 1,
+    width: '100%',
+  },
+  recenterButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: Colors.neutral.white,
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: Colors.neutral.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+  },
+  recenterIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  recenterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary.blue,
   },
 })

@@ -1,6 +1,6 @@
-# 🎣 Lanseta - Romanian Fishing App
+# 🎣 Lanseta - Romanian Mobile Fishing App
 
-Lanseta is a comprehensive mobile and web application designed for hobby anglers in Romania, initially focused on Timis county and Timisoara area. The app provides interactive fishing spot maps, species database, solunar activity insights, and personal fishing journal features.
+Lanseta is a native mobile application designed for hobby anglers in Romania, initially focused on Timis county and Timisoara area. The app provides interactive fishing spot maps, species database, solunar activity insights, and personal fishing journal features exclusively for iOS and Android devices.
 
 ## 🌟 Features
 
@@ -27,11 +27,12 @@ Lanseta is a comprehensive mobile and web application designed for hobby anglers
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React Native with Expo (Cross-platform mobile + web)
+- **Frontend**: React Native with Expo (iOS & Android)
 - **Backend**: Supabase (Database, Authentication, Serverless Functions)
 - **Language**: TypeScript
-- **Maps**: React Native Maps
+- **Maps**: React Native Maps (native implementation)
 - **UI Language**: Romanian
+- **Platforms**: iOS and Android mobile devices only
 
 ## 🚀 Getting Started
 
@@ -61,7 +62,6 @@ Lanseta is a comprehensive mobile and web application designed for hobby anglers
    ```env
    EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
    EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
    ```
 
 4. **Set up Supabase database**
@@ -79,21 +79,17 @@ Lanseta is a comprehensive mobile and web application designed for hobby anglers
 npm start
 
 # Run on specific platforms
-npm run android  # Android emulator
-npm run ios      # iOS simulator  
-npm run web      # Web browser
+npm run android  # Android emulator/device
+npm run ios      # iOS simulator/device
 ```
 
 ## 📱 Usage
 
-### For Mobile
+### Mobile Development
 - Install Expo Go from App Store/Play Store
-- Scan the QR code from terminal
-- App will load on your device
-
-### For Web
-- Press `w` in terminal or visit `http://localhost:8081`
-- Full web compatibility for desktop users
+- Scan the QR code from terminal with your device
+- App will load directly on your mobile device
+- For best experience, test on physical device for location features
 
 ## 🗂️ Project Structure
 

@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Platform, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import { sampleFishingSpots } from '@/src/data/fishingSpots';
 import { FishingSpot } from '@/src/types/database';
 import FishingSpotModal from '@/src/components/FishingSpotModal';
 import SolunarCard from '@/src/components/SolunarCard';
 import HourlyActivityChart from '@/src/components/HourlyActivityChart';
+import FishingMap from '@/src/components/FishingMap';
 import { calculateSolunarScore, SolunarData } from '@/src/utils/solunarUtils';
 import { Colors } from '@/src/constants/Colors';
-
-// Platform-specific map imports
-let FishingMap: any
-if (Platform.OS === 'web') {
-  FishingMap = require('@/src/components/FishingMap.web').default
-} else {
-  FishingMap = require('@/src/components/FishingMap').default
-}
 
 export default function MapScreen() {
   const [selectedSpot, setSelectedSpot] = useState<FishingSpot | null>(null)
@@ -29,33 +22,13 @@ export default function MapScreen() {
   }, [])
 
   const handleSpotPress = (spot: FishingSpot) => {
-    if (Platform.OS === 'web') {
-      // Keep alert for web
-      const priceText = spot.price ? `${spot.price} RON/zi` : 'Gratuit'
-      const speciesText = spot.species.join(', ')
-      
-      alert(`${spot.name}\n\n${spot.description}\n\n💰 Preț: ${priceText}\n🐟 Specii: ${speciesText}\n\n📋 Reguli:\n${spot.rules}`)
-    } else {
-      // Use custom modal for mobile
-      setSelectedSpot(spot)
-      setModalVisible(true)
-    }
+    setSelectedSpot(spot)
+    setModalVisible(true)
   }
 
   const handleCloseModal = () => {
     setModalVisible(false)
     setSelectedSpot(null)
-  }
-
-  if (Platform.OS === 'web') {
-    return (
-      <View style={styles.container}>
-        <FishingMap
-          spots={sampleFishingSpots}
-          onSpotPress={handleSpotPress}
-        />
-      </View>
-    );
   }
 
   return (
