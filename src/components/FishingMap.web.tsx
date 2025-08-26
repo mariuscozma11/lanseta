@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { StyleSheet, View, Dimensions, Alert, Text } from 'react-native'
 import * as Location from 'expo-location'
 import { FishingSpot } from '../types/database'
+import { Colors } from '../constants/Colors'
 
 interface FishingMapProps {
   spots: FishingSpot[]
@@ -87,20 +88,20 @@ const styles = StyleSheet.create({
   fallbackContainer: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.light.backgroundSecondary,
   },
   webMapFallback: {
     textAlign: 'center',
-    color: '#333',
+    color: Colors.light.text,
   } as any,
   title: {
-    color: '#1976D2',
+    color: Colors.primary.blue,
     marginBottom: '10px',
     fontSize: '28px',
     fontWeight: 'bold',
   } as any,
   subtitle: {
-    color: '#666',
+    color: Colors.light.textSecondary,
     marginBottom: '30px',
     fontSize: '16px',
   } as any,
@@ -112,37 +113,37 @@ const styles = StyleSheet.create({
     textAlign: 'left',
   } as any,
   spotItem: {
-    border: '2px solid #e0e0e0',
+    border: `2px solid ${Colors.light.border}`,
     borderRadius: '12px',
     padding: '20px',
     cursor: 'pointer',
-    backgroundColor: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    backgroundColor: Colors.neutral.white,
+    boxShadow: `0 4px 8px ${Colors.light.shadow}`,
     transition: 'all 0.2s ease',
   } as any,
   spotTitle: {
-    color: '#1976D2',
+    color: Colors.primary.blue,
     marginBottom: '10px',
     fontSize: '20px',
     fontWeight: 'bold',
   } as any,
   spotDescription: {
-    color: '#333',
+    color: Colors.light.text,
     marginBottom: '15px',
     fontSize: '14px',
     lineHeight: '1.4',
   } as any,
   spotInfo: {
-    color: '#555',
+    color: Colors.light.textSecondary,
     marginBottom: '8px',
     fontSize: '14px',
   } as any,
   spotRules: {
-    color: '#777',
+    color: Colors.light.textSecondary,
     fontSize: '12px',
     fontStyle: 'italic',
     marginTop: '10px',
     paddingTop: '10px',
-    borderTop: '1px solid #eee',
+    borderTop: `1px solid ${Colors.light.borderLight}`,
   } as any,
 })

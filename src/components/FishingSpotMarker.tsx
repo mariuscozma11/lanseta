@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Marker } from 'react-native-maps'
 import { FishingSpot } from '../types/database'
+import { Colors } from '../constants/Colors'
 
 interface FishingSpotMarkerProps {
   spot: FishingSpot
@@ -10,6 +11,7 @@ interface FishingSpotMarkerProps {
 
 export default function FishingSpotMarker({ spot, onPress }: FishingSpotMarkerProps) {
   const isFree = spot.price === 0 || spot.price === null || spot.price === undefined
+  const isPremium = spot.price && spot.price >= 25
   
   return (
     <Marker
@@ -18,12 +20,22 @@ export default function FishingSpotMarker({ spot, onPress }: FishingSpotMarkerPr
         longitude: spot.longitude,
       }}
       onPress={() => onPress?.(spot)}
+      tracksViewChanges={false}
     >
-      <View style={[styles.markerContainer, isFree ? styles.freeMarker : styles.paidMarker]}>
-        <Text style={styles.fishIcon}>🎣</Text>
-        <View style={[styles.priceTag, isFree ? styles.freeTag : styles.paidTag]}>
-          <Text style={styles.priceText}>
-            {isFree ? 'Gratuit' : `${spot.price} RON`}
+      <View style={[
+        styles.markerContainer, 
+        isFree ? styles.freeMarker : isPremium ? styles.premiumMarker : styles.paidMarker
+      ]}>
+        <View style={[
+          styles.pinContainer,
+          isFree ? styles.freePinContainer : isPremium ? styles.premiumPinContainer : styles.paidPinContainer
+        ]}>
+          <Text style={styles.fishIcon}>🎣</Text>
+          <View style={styles.pinPoint} />
+        </View>
+        <View style={[styles.priceTag, isFree ? styles.freeTag : isPremium ? styles.premiumTag : styles.paidTag]}>
+          <Text style={[styles.priceText, isFree ? styles.freePriceText : styles.whitePriceText]}>
+            {isFree ? 'GRATUIT' : `${spot.price} RON`}
           </Text>
         </View>
       </View>
@@ -34,7 +46,9 @@ export default function FishingSpotMarker({ spot, onPress }: FishingSpotMarkerPr
 const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    width: 70,
+    height: 80,
   },
   freeMarker: {
     // Green theme for free spots
@@ -42,30 +56,88 @@ const styles = StyleSheet.create({
   paidMarker: {
     // Blue theme for paid spots  
   },
+  premiumMarker: {
+    // Orange theme for premium spots
+  },
+  pinContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.neutral.black,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    borderWidth: 3,
+    borderColor: Colors.neutral.white,
+  },
+  freePinContainer: {
+    backgroundColor: Colors.map.freeSpot,
+  },
+  paidPinContainer: {
+    backgroundColor: Colors.map.paidSpot,
+  },
+  premiumPinContainer: {
+    backgroundColor: Colors.map.premiumSpot,
+  },
+  pinPoint: {
+    position: 'absolute',
+    bottom: -8,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 12,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: Colors.neutral.white,
+  },
   fishIcon: {
-    fontSize: 24,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    fontSize: 28,
+    textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: {width: 1, height: 1},
     textShadowRadius: 2,
   },
   priceTag: {
-    marginTop: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    minWidth: 50,
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    minWidth: 60,
     alignItems: 'center',
+    shadowColor: Colors.neutral.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   freeTag: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.map.freeSpot,
   },
   paidTag: {
-    backgroundColor: '#2196F3',
+    backgroundColor: Colors.map.paidSpot,
+  },
+  premiumTag: {
+    backgroundColor: Colors.map.premiumSpot,
   },
   priceText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontWeight: '700',
     textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  whitePriceText: {
+    color: Colors.neutral.white,
+  },
+  freePriceText: {
+    color: Colors.neutral.white,
   },
 })

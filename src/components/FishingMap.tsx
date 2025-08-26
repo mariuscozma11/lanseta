@@ -61,10 +61,16 @@ export default function FishingMap({ spots, onSpotPress }: FishingMapProps) {
         region={region}
         onRegionChangeComplete={setRegion}
         showsUserLocation={true}
-        showsMyLocationButton={true}
-        showsCompass={true}
-        showsScale={true}
+        showsMyLocationButton={false}
+        showsCompass={false}
+        showsScale={false}
+        showsBuildings={false}
+        showsTraffic={false}
+        showsIndoors={false}
+        showsPointsOfInterest={false}
         mapType="standard"
+        toolbarEnabled={false}
+        moveOnMarkerPress={false}
       >
         {spots.map((spot) => (
           <FishingSpotMarker
