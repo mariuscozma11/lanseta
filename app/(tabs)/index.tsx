@@ -1,8 +1,15 @@
-import { StyleSheet, View, Alert } from 'react-native';
+import { StyleSheet, View, Alert, Platform } from 'react-native';
 import { RomanianText } from '@/src/localization/ro';
-import FishingMap from '@/src/components/FishingMap';
 import { sampleFishingSpots } from '@/src/data/fishingSpots';
 import { FishingSpot } from '@/src/types/database';
+
+// Platform-specific map imports
+let FishingMap: any
+if (Platform.OS === 'web') {
+  FishingMap = require('@/src/components/FishingMap.web').default
+} else {
+  FishingMap = require('@/src/components/FishingMap').default
+}
 
 export default function MapScreen() {
   const handleSpotPress = (spot: FishingSpot) => {
